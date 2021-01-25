@@ -16,10 +16,7 @@ def average_lane(img, lines):
             intercept = parameters[1]
             lines_fit.append((slope, intercept, x1, y1, x2, y2))
 
-        if len(lines_fit) == 1:
-            lines_fit = np.array(lines_fit).reshape(-1, 1)
-
-        cluster_model = DBSCAN(eps=100, min_samples=1)
+        cluster_model = DBSCAN(eps=200, min_samples=2)
         clusters = cluster_model.fit_predict(np.array(lines_fit))
 
         # TODO: Refactor to func
@@ -35,7 +32,6 @@ def average_lane(img, lines):
         for cluster, data in clusters_lines.items():
             data = np.abs(data)
             data = np.average(data, axis=0)
-            print(data)
             data = make_coordinates(img, data[:2], *data[2:])
             data = np.abs(data)
             print('Data for cluster {}: {}\n======'.format(cluster, data))
