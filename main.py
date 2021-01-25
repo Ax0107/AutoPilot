@@ -56,14 +56,16 @@ def screen_capture():
         edges = cv2.Canny(blur, 70, 200)
 
         # Выделение ROI (Region of Interests) - участка с дорогой
-        vertices = np.array([[0, 400], [0, 400], [100, 250], [700, 250], [800, 400], [800, 400]])
+        vertices = np.array([[0, 400], [0, 400], [200, 250], [600, 250], [800, 400], [800, 400]])
         edges = roi(edges, vertices)
 
+        # Получаем layer с нарисованной фигурой дороги
         layer = draw_road(img, edges, color=(0, 0, 255), thickness=3)
+        # Наслаиваем layer с прозрачностью
         alpha = 0.3
         cv2.addWeighted(layer, alpha, img, 1 - alpha,
                         0, img)
-        # numpy_vertical = np.hstack((img, thresh))
+        
         cv2.imshow('img', img)
         cv2.imshow('thresh', blur)
 
