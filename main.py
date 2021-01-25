@@ -22,9 +22,8 @@ def roi(img, vertices):
 
 
 def draw_road(img, edges, color=None, thickness=3):
-
+    global LAST_AV_LINES
     layer = img.copy()
-
     if color is None:
         color = (255, 255, 255)
     try:
@@ -33,14 +32,18 @@ def draw_road(img, edges, color=None, thickness=3):
 
         averaged_lines = average_lane(img, lines)
         print(averaged_lines)
-
-        polygon = np.array([[averaged_lines[0][0], averaged_lines[0][1]], [averaged_lines[0][2], averaged_lines[0][3]],
-                              [averaged_lines[1][2], averaged_lines[1][3]], [averaged_lines[1][0], averaged_lines[1][1]]])
-        cv2.fillPoly(layer, pts=[polygon], color=color)
-        # cv2.polylines(layer, [polygon], 1, color, 5)
+        try:
+            polygon = np.array([[averaged_lines[0][0], averaged_lines[0][1]], [averaged_lines[0][2], averaged_lines[0][3]],
+                                  [averaged_lines[1][2], averaged_lines[1][3]], [averaged_lines[1][0], averaged_lines[1][1]]])
+            cv2.fillPoly(layer, pts=[polygon], color=color)
+            LAST_AV_LINES = polygon
+        except:
+            for i in range(len(averaged_lines)):
+                cv2.line(layer, [averaged_lines[i][0][0], averaged_lines[i][0][1]], [averaged_lines[i][1][0], averaged_lines[i][1][1]], color, 5)
 
     except Exception as e:
         print(e)
+        return None
     return layer
 
 
@@ -61,6 +64,8 @@ listener.start()
 
 KEYBOARD_STACK = []
 
+LAST_AV_LINES = None
+LAST_LAYER = None
 
 def keyboard_commands():
     global KEYBOARD_STACK
@@ -76,7 +81,7 @@ def keyboard_commands():
 def screen_capture():
     global WORKING
     global keyboard_contr
-
+    global LAST_AV_LINES
     Thread(target=keyboard_commands).start()
 
     while WORKING:
@@ -108,11 +113,18 @@ def screen_capture():
 
         # Получаем layer с нарисованной фигурой дороги
         layer = draw_road(img, edges_roi, color=(0, 0, 255), thickness=3)
-        # Наслаиваем layer с прозрачностью
-        alpha = 0.3
-        cv2.addWeighted(layer, alpha, img, 1 - alpha,
-                        0, img)
+        try:
+            if layer is None:
+                layer = img.copy()
+                cv2.fillPoly(layer, pts=[LAST_AV_LINES], color=(0, 0, 255))
 
+
+            # Наслаиваем layer с прозрачностью
+            alpha = 0.3
+            cv2.addWeighted(layer, alpha, img, 1 - alpha,
+                            0, img)
+        except:
+            pass
         cv2.imshow('img', img)
         # cv2.imshow('edges', edges)
         cv2.imshow('edges_roi', edges_roi)
