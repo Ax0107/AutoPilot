@@ -27,20 +27,33 @@ def draw_road(img, edges, color=None, thickness=3):
 
     if color is None:
         color = (255, 255, 255)
-    try:
+    # try:
 
-        lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=50, maxLineGap=50)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=50, maxLineGap=50)
 
-        averaged_lines = average_lane(img, lines)
-        print(averaged_lines)
+    averaged_lines = np.array(average_lane(img, lines))
+    print('Average_lines', averaged_lines)
+    #
+    # peri = cv2.arcLength([averaged_lines], True)
+    # approx = cv2.approxPolyDP([averaged_lines], 0.02 * peri, True)
+    #
+    # # если у контура 4 вершины, предполагаем, что это книга
+    # if len(approx) == 4:
+    #     cv2.drawContours(img, [approx], -1, (0, 255, 0), 4)
 
-        polygon = np.array([[averaged_lines[0][0], averaged_lines[0][1]], [averaged_lines[0][2], averaged_lines[0][3]],
-                              [averaged_lines[1][2], averaged_lines[1][3]], [averaged_lines[1][0], averaged_lines[1][1]]])
-        cv2.fillPoly(layer, pts=[polygon], color=color)
-        # cv2.polylines(layer, [polygon], 1, color, 5)
 
-    except Exception as e:
-        print(e)
+    for line in averaged_lines:
+        print('L', line, '+++')
+        line = line.astype(np.int)
+        cv2.line(img, (line[2], line[3]), (line[0], line[1]),  color, 10)
+
+    #     polygon = np.array([[averaged_lines[0][0], averaged_lines[0][1]], [averaged_lines[0][2], averaged_lines[0][3]],
+    #                           [averaged_lines[1][2], averaged_lines[1][3]], [averaged_lines[1][0], averaged_lines[1][1]]])
+    # cv2.fillPoly(layer, pts=[polygon], color=color)
+    # cv2.polylines(layer, [polygon], 1, color, 5)
+    #
+    # except Exception as e:
+    #     print(e)
     return layer
 
 
@@ -113,9 +126,10 @@ def screen_capture():
         cv2.addWeighted(layer, alpha, img, 1 - alpha,
                         0, img)
 
+        cv2.imshow('edges_roi', edges_roi)
         cv2.imshow('img', img)
         # cv2.imshow('edges', edges)
-        cv2.imshow('edges_roi', edges_roi)
+
 
 
         if cv2.waitKey(25) & 0xFF == ord('q'):
