@@ -43,7 +43,7 @@ def make_coordinates(img, line_params):
     slope, intercept = line_params
 
     y1 = img.shape[0]
-    y2 = int(y1 * 4 / 7)
+    y2 = int(y1 * 3 / 7)
 
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)

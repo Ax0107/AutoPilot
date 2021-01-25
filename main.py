@@ -56,18 +56,19 @@ def screen_capture():
         edges = cv2.Canny(blur, 70, 200)
 
         # Выделение ROI (Region of Interests) - участка с дорогой
-        vertices = np.array([[0, 400], [0, 400], [200, 250], [600, 250], [800, 400], [800, 400]])
-        edges = roi(edges, vertices)
+        vertices = np.array([[10, 400], [100, 300], [700, 300], [800, 400]])
+        edges_roi = roi(edges, vertices)
 
         # Получаем layer с нарисованной фигурой дороги
-        layer = draw_road(img, edges, color=(0, 0, 255), thickness=3)
+        layer = draw_road(img, edges_roi, color=(0, 0, 255), thickness=3)
         # Наслаиваем layer с прозрачностью
         alpha = 0.3
         cv2.addWeighted(layer, alpha, img, 1 - alpha,
                         0, img)
-        
+
         cv2.imshow('img', img)
-        cv2.imshow('thresh', blur)
+        cv2.imshow('edges', edges)
+
 
         if cv2.waitKey(25) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
