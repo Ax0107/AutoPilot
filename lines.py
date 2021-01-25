@@ -8,6 +8,9 @@ def average_lane(img, lines):
     while lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line.reshape(4)
+            if abs(y1 - y2) < 40:
+                continue
+
             parameters = np.polyfit((x1, x2), (y1, y2), 1)
             slope = parameters[0]
             intercept = parameters[1]

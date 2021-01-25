@@ -3,12 +3,16 @@ import cv2
 from mss import mss
 from config import CORDS
 from lines import average_lane
-# from pynput import keyboard
-# import pyautogui
-# from pynput.keyboard import Key, Controller
-# import tiem
+from pynput import keyboard
+import pyautogui
+from threading import Thread
+from pynput.keyboard import Controller
+import time
 
-# keyboard_contr = Controller()
+from directkey import PressKey, W, S, D, A
+
+
+keyboard_contr = Controller()
 
 def roi(img, vertices):
     mask = np.zeros_like(img)
@@ -42,21 +46,38 @@ def draw_road(img, edges, color=None, thickness=3):
 
 WORKING = True
 
-#
-# def on_release(key):
-#     global WORKING
-#     if str(key) == "'l'":
-#         WORKING = False
-#
-#
-# # Collect events until released
-# listener = keyboard.Listener(
-#         on_release=on_release)
-# listener.start()
+
+def on_release(key):
+    global WORKING
+    if str(key) == "'l'":
+        WORKING = False
+
+
+# Collect events until released
+listener = keyboard.Listener(
+        on_release=on_release)
+listener.start()
+
+
+KEYBOARD_STACK = []
+
+
+def keyboard_commands():
+    global KEYBOARD_STACK
+    while True:
+        try:
+            PressKey(KEYBOARD_STACK[0])
+            KEYBOARD_STACK.pop(0)
+        except:
+            pass
+        time.sleep(1)
 
 
 def screen_capture():
     global WORKING
+    global keyboard_contr
+
+    Thread(target=keyboard_commands).start()
 
     while WORKING:
 
@@ -103,4 +124,5 @@ def screen_capture():
 
 
 if __name__ == "__main__":
+
     screen_capture()
