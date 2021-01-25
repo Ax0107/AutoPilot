@@ -3,7 +3,12 @@ import cv2
 from mss import mss
 from config import CORDS
 from lines import average_lane
+# from pynput import keyboard
+# import pyautogui
+# from pynput.keyboard import Key, Controller
+# import tiem
 
+# keyboard_contr = Controller()
 
 def roi(img, vertices):
     mask = np.zeros_like(img)
@@ -35,8 +40,25 @@ def draw_road(img, edges, color=None, thickness=3):
     return layer
 
 
+WORKING = True
+
+#
+# def on_release(key):
+#     global WORKING
+#     if str(key) == "'l'":
+#         WORKING = False
+#
+#
+# # Collect events until released
+# listener = keyboard.Listener(
+#         on_release=on_release)
+# listener.start()
+
+
 def screen_capture():
-    while True:
+    global WORKING
+
+    while WORKING:
 
         with mss() as sct:
             img = np.array(sct.grab(CORDS))
@@ -47,17 +69,21 @@ def screen_capture():
         # cv2.line(img, (0, 250), (800, 250), (0, 0, 0), 3)
 
         # Блюр
-        blur = cv2.GaussianBlur(img_gray, (3, 3), 3)
+        blur = cv2.GaussianBlur(img_gray, (5, 5), 3)
 
         # Затемнение
-        # ret, thresh = cv2.threshold(blur, 100, 200, cv2.THRESH_BINARY)
+        ret, thresh = cv2.threshold(blur, 200, 250, cv2.THRESH_TRUNC)
+        # blur = cv2.GaussianBlur(thresh, (3, 3), 5)
+        # ret, thresh = cv2.threshold(blur, 150, 250, cv2.THRESH_BINARY)
 
         # Фильтр Canny
-        edges = cv2.Canny(blur, 70, 200)
+        edges = cv2.Canny(thresh, 70, 200)
 
         # Выделение ROI (Region of Interests) - участка с дорогой
-        vertices = np.array([[10, 400], [100, 300], [700, 300], [800, 400]])
+        vertices = np.array([[0, 400], [0, 400], [200, 200], [600, 200], [800, 400], [800, 400]])
         edges_roi = roi(edges, vertices)
+
+        # cv2.polylines(img, [vertices], 1, color=(0, 255, 255), thickness=2)
 
         # Получаем layer с нарисованной фигурой дороги
         layer = draw_road(img, edges_roi, color=(0, 0, 255), thickness=3)
@@ -67,7 +93,8 @@ def screen_capture():
                         0, img)
 
         cv2.imshow('img', img)
-        cv2.imshow('edges', edges)
+        # cv2.imshow('edges', edges)
+        cv2.imshow('edges_roi', edges_roi)
 
 
         if cv2.waitKey(25) & 0xFF == ord('q'):
