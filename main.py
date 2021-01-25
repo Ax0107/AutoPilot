@@ -2,8 +2,7 @@ import numpy as np
 import cv2
 from mss import mss
 from sklearn.cluster import DBSCAN
-
-cords = {'top': 60, 'left': 1920, 'width': 800, 'height': 600-60}
+from config import CORDS
 
 
 def roi(img, vertices):
@@ -71,21 +70,6 @@ def draw_road(img, edges, color=None, thickness=3):
         # min_x = min(copy_approx[0])
         # print(min_y)
         # cv2.line(img, (min_x, min_y), (800, min_y), (255, 255, 255), 5)
-        # [[[ 78 349]]
-        #
-        #  [[652 334]]
-        #
-        #  [[682 325]]
-        #
-        #  [[687 324]]
-        #
-        #  [[639 332]]
-        #
-        #  [[233 289]]
-        #
-        #  [[233 287]]
-        #
-        #  [[267 284]]]
 
         print(copy_approx, '\n\n\n\n')
 
@@ -104,23 +88,29 @@ def screen_capture():
     while True:
 
         with mss() as sct:
-            img = np.array(sct.grab(cords))
+            img = np.array(sct.grab(CORDS))
 
+        # Преобразование в Gray
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+        # Выделение ROI (Region of Interests) - участка с дорогой
         vertices = np.array([[10, 400], [10, 400], [200, 250], [600, 250], [800, 400], [800, 400]])
-
         img = roi(img, vertices)
+
         cv2.line(img, (0, 250), (800, 250), (0, 0, 0), 3)
 
+        # Блюр
         blur = cv2.GaussianBlur(img, (3, 3), 3)
+        # Затемнение
         ret, thresh = cv2.threshold(blur, 100, 200, cv2.THRESH_BINARY)
+        # Фильтр Canny
         edges = cv2.Canny(thresh, 70, 200)
 
         img = draw_road(img, edges)
 
-        numpy_vertical = np.hstack((img, thresh))
-        cv2.imshow('test', numpy_vertical)
+        # numpy_vertical = np.hstack((img, thresh))
+        cv2.imshow('img', img)
+        cv2.imshow('thresh', thresh)
 
         if cv2.waitKey(25) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
